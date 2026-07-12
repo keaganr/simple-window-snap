@@ -1,19 +1,13 @@
 import AppKit
 import Combine
 import SWSAccessibility
+import SWSModel
 import SWSOverlay
-
-/// Hardcoded snap zones for Phase 3's overlay demo. Replaced by
-/// SWSModel-backed, user-configured zones in Phase 5.
-private let placeholderZones: [NormalizedRect] = [
-    NormalizedRect(x: 0, y: 0, width: 1.0 / 3, height: 1), // Left third
-    NormalizedRect(x: 2.0 / 3, y: 0, width: 1.0 / 3, height: 1), // Right third
-    NormalizedRect(x: 1.0 / 3, y: 0, width: 1.0 / 3, height: 0.5), // Top center
-]
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let permissionManager = PermissionManager()
+    let configurationStore = ConfigurationStore()
     private let dragDetectionEngine = DragDetectionEngine()
     private let overlayController = OverlayWindowController()
     private var cancellables: Set<AnyCancellable> = []
@@ -34,11 +28,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         dragDetectionEngine.$phase
             .removeDuplicates()
-            .sink { [overlayController] phase in
+            .sink { [overlayController, configurationStore] phase in
                 MainActor.assumeIsolated {
                     switch phase {
                     case .dragging:
-                        overlayController.show(zones: placeholderZones)
+                        let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []
+                        overlayController.show(zones: zones)
                     case .idle, .candidate:
                         overlayController.hide()
                     }
@@ -60,8 +55,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // *during* the `phase` assignment inside `apply(_:)`, before this
         // callback (a separate statement later in that same method) runs.
         // Recomputing from `cursorLocation` sidesteps that ordering entirely.
-        dragDetectionEngine.onDragEnded = { [dragDetectionEngine] in
+        dragDetectionEngine.onDragEnded = { [dragDetectionEngine, configurationStore] in
             guard let screen = NSScreen.main else { return }
+            let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []
             // Zones are resolved against the *usable* area (excludes the
             // menu bar/Dock), matching what OverlayWindowController shows -
             // a zone touching the full screen's AX y=0 would ask apps to
@@ -71,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let targetZone = ZoneHitTesting.zone(
                 containing: dragDetectionEngine.cursorLocation,
                 screenFrame: usableAXFrame,
-                in: placeholderZones
+                in: zones
             ) else { return }
             dragDetectionEngine.snapCandidateWindow(toAXRect: targetZone.resolved(in: usableAXFrame))
         }

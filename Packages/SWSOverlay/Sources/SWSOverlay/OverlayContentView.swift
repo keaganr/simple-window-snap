@@ -1,4 +1,5 @@
 import SwiftUI
+import SWSModel
 
 @MainActor
 final class OverlayState: ObservableObject {

@@ -13,11 +13,15 @@ let package = Package(
             targets: ["SWSOverlay"]
         ),
     ],
+    dependencies: [
+        .package(path: "../SWSModel"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SWSOverlay"
+            name: "SWSOverlay",
+            dependencies: ["SWSModel"]
         ),
         .testTarget(
             name: "SWSOverlayTests",

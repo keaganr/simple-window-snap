@@ -7,6 +7,7 @@ import SWSAccessibility
 /// configuration switcher added in a later phase.
 public struct MenuBarContentView: View {
     @ObservedObject private var permissionManager: PermissionManager
+    @Environment(\.openWindow) private var openWindow
 
     public init(permissionManager: PermissionManager) {
         self.permissionManager = permissionManager
@@ -27,9 +28,19 @@ public struct MenuBarContentView: View {
 
         Divider()
 
+        Button("Edit Zones…") {
+            openWindow(id: zoneEditorWindowID)
+        }
+
+        Divider()
+
         Button("Quit Simple Window Snap") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
     }
 }
+
+/// Shared with `SimpleWindowSnapApp`'s `Window(id:)` declaration for the
+/// zone editor - both sides must agree on this identifier.
+public let zoneEditorWindowID = "zone-editor"

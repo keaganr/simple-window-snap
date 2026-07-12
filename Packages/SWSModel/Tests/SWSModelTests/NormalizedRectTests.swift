@@ -1,5 +1,5 @@
 import Testing
-@testable import SWSOverlay
+@testable import SWSModel
 import CoreGraphics
 
 private let leftThird = NormalizedRect(x: 0, y: 0, width: 1.0 / 3, height: 1)

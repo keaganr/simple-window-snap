@@ -3,12 +3,7 @@ import CoreGraphics
 /// A rect expressed as fractions (0.0-1.0) of the screen's width/height,
 /// making it resolution-independent. Origin is top-left, matching the
 /// Accessibility API / Quartz convention used throughout this app.
-///
-/// This is a placeholder living in SWSOverlay for Phase 3's hardcoded
-/// zones; Phase 5 introduces SWSModel with the real, persisted
-/// configuration/zone types, at which point this moves there and
-/// SWSOverlay depends on it instead of defining its own.
-public struct NormalizedRect: Equatable, Hashable, Sendable {
+public struct NormalizedRect: Codable, Equatable, Hashable, Sendable {
     public var x: Double
     public var y: Double
     public var width: Double
@@ -26,8 +21,9 @@ public struct NormalizedRect: Equatable, Hashable, Sendable {
     }
 
     /// Resolves this fractional rect to actual pixels within `screenFrame`
-    /// (e.g. `NSScreen.main?.frame`), in the same coordinate space as
-    /// `screenFrame`'s origin - top-left/AX space throughout this app.
+    /// (e.g. the AX-space usable frame from `ScreenGeometry`), in the same
+    /// coordinate space as `screenFrame`'s origin - top-left/AX space
+    /// throughout this app.
     public func resolved(in screenFrame: CGRect) -> CGRect {
         CGRect(
             x: screenFrame.origin.x + x * screenFrame.width,

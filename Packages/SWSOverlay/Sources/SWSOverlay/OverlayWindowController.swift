@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import SWSModel
 
 /// A transparent, click-through, always-on-top window covering the main
 /// screen's usable area, used to highlight configured snap zones while the

@@ -48,14 +48,21 @@ source files or packages).
    permission status line (with buttons to grant it / open System Settings
    if not yet granted), and Quit.
 5. Once Accessibility is granted, drag detection starts automatically. Drag
-   any window (in any app) by its title bar - three hardcoded placeholder
-   zones (Left Third, Right Third, Top Center) appear as an overlay, with
-   the zone under the cursor highlighted in blue. Release inside a zone and
-   the window snaps to fill it exactly. Resizing a window (dragging an
-   edge/corner) is deliberately ignored - no overlay, no snapping - since
-   that's not a "move to a zone" gesture. These placeholder zones are
-   replaced by real user-configured ones in Phase 5.
-6. To watch the detection internals instead of/alongside the overlay:
+   any window (in any app) by its title bar - the zones from your current
+   configuration appear as an overlay, with the zone under the cursor
+   highlighted in blue. Release inside a zone and the window snaps to fill
+   it exactly. Resizing a window (dragging an edge/corner) is deliberately
+   ignored - no overlay, no snapping - since that's not a "move to a zone"
+   gesture.
+6. Click "Edit Zones…" in the menu to open the zone editor: drag across the
+   grid to draw a new zone (existing zones are shown in gray for context),
+   rename zones inline, or delete them. Changes save to
+   `~/Library/Application Support/SimpleWindowSnap/configurations.json`
+   immediately and take effect on your next drag - no restart needed. A
+   fresh install seeds one "Default" configuration with three starter zones
+   (Left Third, Right Third, Top Center); switching between multiple
+   configurations is Phase 6.
+7. To watch the detection internals instead of/alongside the overlay:
 
    ```sh
    /usr/bin/log stream --predicate 'subsystem == "com.keaganr.SimpleWindowSnap"' --style compact --level debug

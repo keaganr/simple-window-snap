@@ -10,5 +10,10 @@ struct SimpleWindowSnapApp: App {
             MenuBarContentView(permissionManager: appDelegate.permissionManager)
         }
         .menuBarExtraStyle(.menu)
+
+        Window("Edit Zones", id: zoneEditorWindowID) {
+            ConfigurationEditorView(store: appDelegate.configurationStore)
+        }
+        .windowResizability(.contentSize)
     }
 }
