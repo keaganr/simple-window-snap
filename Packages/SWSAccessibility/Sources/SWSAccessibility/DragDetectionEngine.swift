@@ -13,13 +13,17 @@ private let logger = Logger(subsystem: "com.keaganr.SimpleWindowSnap", category:
 /// notifications to detect when the user starts/continues/ends dragging a
 /// window - any window, belonging to any app, not just this one.
 ///
-/// This phase (log-only) does not yet show an overlay or snap anything; it
-/// exists to prove the detection plumbing works before building on top of
-/// it. Must only be started once Accessibility permission is granted -
-/// `NSEvent.addGlobalMonitorForEvents` silently receives nothing otherwise.
+/// Publishes `phase` and `cursorLocation` so other layers (e.g. the
+/// overlay) can react without depending on AppKit/Accessibility types
+/// directly. Must only be started once Accessibility permission is
+/// granted - `NSEvent.addGlobalMonitorForEvents` silently receives
+/// nothing otherwise.
 @MainActor
-public final class DragDetectionEngine {
-    private var phase: DragPhase = .idle
+public final class DragDetectionEngine: ObservableObject {
+    @Published public private(set) var phase: DragPhase = .idle
+    /// Cursor location in AX/Quartz space (top-left origin), updated on
+    /// every mouse-down/dragged event while a drag is in progress.
+    @Published public private(set) var cursorLocation: CGPoint = .zero
 
     // `nonisolated(unsafe)` for the same reason as PermissionManager: `deinit`
     // is always nonisolated even on a @MainActor class, and these are
@@ -99,6 +103,10 @@ public final class DragDetectionEngine {
             lifecycleEvent = .mouseUp(location: location)
         default:
             return
+        }
+
+        if let primaryScreenHeight = NSScreen.screens.first?.frame.height {
+            cursorLocation = CoordinateConversion.flipPointY(location, primaryScreenHeight: primaryScreenHeight)
         }
 
         if case .mouseDown = lifecycleEvent {

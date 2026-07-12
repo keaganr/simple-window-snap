@@ -47,18 +47,23 @@ source files or packages).
    bar at the top of the screen. Click it to see the menu: an Accessibility
    permission status line (with buttons to grant it / open System Settings
    if not yet granted), and Quit.
-5. Once Accessibility is granted, drag detection starts automatically (no
-   UI for it yet - it just logs). Watch it work with:
+5. Once Accessibility is granted, drag detection starts automatically. Drag
+   any window (in any app) around - three hardcoded placeholder zones
+   (Left Third, Right Third, Top Center) appear as an overlay while
+   dragging, with the zone under the cursor highlighted in blue. Release to
+   see it disappear (there's no snapping yet - that's Phase 4). These
+   placeholder zones are replaced by real user-configured ones in Phase 5.
+6. To watch the detection internals instead of/alongside the overlay:
 
    ```sh
    /usr/bin/log stream --predicate 'subsystem == "com.keaganr.SimpleWindowSnap"' --style compact --level debug
    ```
 
-   then drag any window (in any app) around and release it. You should see
-   a "Candidate window" line with its title/frame, `Drag phase` transitions
-   (`idle → candidate → dragging → idle`), and a stream of `AXWindowMoved`/
-   `AXWindowResized` notifications while dragging. Note: use `/usr/bin/log`,
-   not bare `log` - zsh has a builtin of the same name that shadows it.
+   You should see a "Candidate window" line with its title/frame, `Drag
+   phase` transitions (`idle → candidate → dragging → idle`), and a stream
+   of `AXWindowMoved`/`AXWindowResized` notifications while dragging. Note:
+   use `/usr/bin/log`, not bare `log` - zsh has a builtin of the same name
+   that shadows it.
 
 To build from the command line instead:
 
