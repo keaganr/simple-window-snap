@@ -53,5 +53,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+
+        // Deliberately independent of `overlayController`'s internal state
+        // (rather than reading back its `highlightedZone`) since Combine's
+        // `$phase` sink above - which hides the overlay - fires synchronously
+        // *during* the `phase` assignment inside `apply(_:)`, before this
+        // callback (a separate statement later in that same method) runs.
+        // Recomputing from `cursorLocation` sidesteps that ordering entirely.
+        dragDetectionEngine.onDragEnded = { [dragDetectionEngine] in
+            guard let screen = NSScreen.main else { return }
+            // Zones are resolved against the *usable* area (excludes the
+            // menu bar/Dock), matching what OverlayWindowController shows -
+            // a zone touching the full screen's AX y=0 would ask apps to
+            // place a window under the menu bar, which they can't actually
+            // do and clamp/adjust unpredictably instead.
+            let usableAXFrame = ScreenGeometry.usableAXFrame(fullScreenFrame: screen.frame, visibleScreenFrame: screen.visibleFrame)
+            guard let targetZone = ZoneHitTesting.zone(
+                containing: dragDetectionEngine.cursorLocation,
+                screenFrame: usableAXFrame,
+                in: placeholderZones
+            ) else { return }
+            dragDetectionEngine.snapCandidateWindow(toAXRect: targetZone.resolved(in: usableAXFrame))
+        }
     }
 }

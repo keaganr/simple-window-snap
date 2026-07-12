@@ -25,6 +25,12 @@ public final class DragDetectionEngine: ObservableObject {
     /// every mouse-down/dragged event while a drag is in progress.
     @Published public private(set) var cursorLocation: CGPoint = .zero
 
+    /// Called synchronously when a drag ends (mouse-up while `.dragging`),
+    /// *before* the candidate window reference is cleared - the handler
+    /// can call `snapCandidateWindow(toAXRect:)` from within this callback
+    /// to act on the drag that just ended.
+    public var onDragEnded: (() -> Void)?
+
     // `nonisolated(unsafe)` for the same reason as PermissionManager: `deinit`
     // is always nonisolated even on a @MainActor class, and these are
     // otherwise only ever touched on the main actor.
@@ -32,6 +38,22 @@ public final class DragDetectionEngine: ObservableObject {
     private nonisolated(unsafe) var activationObserver: NSObjectProtocol?
     private nonisolated(unsafe) var axObserver: AXObserver?
     private nonisolated(unsafe) var observedPID: pid_t?
+
+    /// The window found under the cursor at the most recent mouse-down,
+    /// if any and if eligible for snapping. Retained until the *next*
+    /// mouse-down (not cleared when the drag ends) so `onDragEnded`
+    /// handlers can still read it via `snapCandidateWindow(toAXRect:)`.
+    private var candidateWindow: AXUIElement?
+
+    /// Whether a genuine `AXWindowMovedNotification` was observed since the
+    /// last mouse-down. Resizing a window (e.g. dragging a corner/edge) also
+    /// satisfies the `.leftMouseDown`/`.leftMouseDragged`/`.leftMouseUp`
+    /// pattern that promotes `.candidate` to `.dragging`, but only produces
+    /// `AXWindowResizedNotification`, never `AXWindowMovedNotification` - so
+    /// this distinguishes an actual move (snap-eligible) from a resize
+    /// (should be left alone) at the point `onDragEnded` decides whether to
+    /// fire.
+    private var sawGenuineWindowMove = false
 
     public init() {}
 
@@ -113,6 +135,18 @@ public final class DragDetectionEngine: ObservableObject {
             logWindow(atMouseLocation: location)
         }
 
+        // `.mouseDragged` deliberately isn't applied to the phase reducer:
+        // resizing a window (dragging an edge/corner) produces these same
+        // raw mouse events as moving it does, and NSEvent alone can't tell
+        // the two apart. cursorLocation is still tracked above for when a
+        // real drag *is* confirmed. Promotion out of `.candidate` instead
+        // waits for AXWindowMovedNotification specifically (never fired by
+        // a resize - see handleAXNotification), so a resize never shows the
+        // overlay or engages the tool at all.
+        if case .mouseDragged = lifecycleEvent {
+            return
+        }
+
         apply(lifecycleEvent)
     }
 
@@ -121,11 +155,30 @@ public final class DragDetectionEngine: ObservableObject {
         phase = DragPhaseReducer.reduce(phase: phase, event: event)
         guard phase != previous else { return }
         logger.debug("Drag phase \(String(describing: previous), privacy: .public) -> \(String(describing: self.phase), privacy: .public)")
+
+        if case .dragging = previous, case .idle = phase, sawGenuineWindowMove {
+            onDragEnded?()
+        }
     }
 
-    // MARK: - Hit-testing (log-only for now; used for real in Phase 4)
+    /// Repositions the window captured at the most recent eligible
+    /// mouse-down to `rect` (AX/Quartz space). No-op if there is no
+    /// candidate window (e.g. the drag started on the desktop, or the
+    /// window under the cursor wasn't eligible for snapping).
+    public func snapCandidateWindow(toAXRect rect: CGRect) {
+        guard let candidateWindow else {
+            logger.debug("snapCandidateWindow called with no candidate window")
+            return
+        }
+        WindowRepositioner.setFrame(rect, for: candidateWindow)
+    }
+
+    // MARK: - Hit-testing
 
     private func logWindow(atMouseLocation location: CGPoint) {
+        candidateWindow = nil
+        sawGenuineWindowMove = false
+
         guard let primaryScreenHeight = NSScreen.screens.first?.frame.height else { return }
         let axPoint = CoordinateConversion.flipPointY(location, primaryScreenHeight: primaryScreenHeight)
 
@@ -142,6 +195,12 @@ public final class DragDetectionEngine: ObservableObject {
             return
         }
 
+        guard WindowRepositioner.isEligibleForSnapping(window) else {
+            logger.debug("Candidate window is not eligible for snapping (full-screen or not movable/resizable)")
+            return
+        }
+
+        candidateWindow = window
         logFrame(of: window)
     }
 
@@ -216,8 +275,12 @@ public final class DragDetectionEngine: ObservableObject {
 
     fileprivate func handleAXNotification(_ notification: String) {
         logger.debug("AX notification: \(notification, privacy: .public)")
-        let movedOrResized = [kAXWindowMovedNotification as String, kAXWindowResizedNotification as String]
-        if movedOrResized.contains(notification) {
+        // Only a genuine move promotes the phase (and, via `apply`, can show
+        // the overlay) - a resize (dragging an edge/corner) only ever
+        // produces AXWindowResizedNotification, never AXWindowMoved, so it's
+        // deliberately left alone here rather than treated the same way.
+        if notification == kAXWindowMovedNotification as String {
+            sawGenuineWindowMove = true
             apply(.windowMoved)
         }
     }

@@ -2,17 +2,17 @@ import AppKit
 import SwiftUI
 
 /// A transparent, click-through, always-on-top window covering the main
-/// screen, used to highlight configured snap zones while the user drags a
-/// window around. Single-display only for now, matching the app's v1 scope.
+/// screen's usable area, used to highlight configured snap zones while the
+/// user drags a window around. Single-display only for now, matching the
+/// app's v1 scope.
 @MainActor
 public final class OverlayWindowController {
     private let window: NSWindow
     private let state = OverlayState()
 
     public init() {
-        let screenFrame = NSScreen.main?.frame ?? .zero
         window = NSWindow(
-            contentRect: screenFrame,
+            contentRect: NSScreen.main?.visibleFrame ?? .zero,
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -27,11 +27,13 @@ public final class OverlayWindowController {
     }
 
     /// Shows the overlay with the given zones highlighted as configured.
+    /// Zones cover the screen's `visibleFrame` (excludes the menu bar/Dock),
+    /// matching `snapCandidateWindow`'s target rects - see `ScreenGeometry`.
     /// Call `updateCursor(atAXPoint:)` as the drag continues to update which
     /// zone is highlighted.
     public func show(zones: [NormalizedRect]) {
-        guard let screenFrame = NSScreen.main?.frame else { return }
-        window.setFrame(screenFrame, display: false)
+        guard let visibleFrame = NSScreen.main?.visibleFrame else { return }
+        window.setFrame(visibleFrame, display: false)
         state.zones = zones
         state.highlightedZone = nil
         window.orderFrontRegardless()
@@ -45,9 +47,8 @@ public final class OverlayWindowController {
     /// - Parameter axPoint: cursor location in AX/Quartz space (top-left
     ///   origin), matching the convention `DragDetectionEngine` publishes.
     public func updateCursor(atAXPoint axPoint: CGPoint) {
-        guard let screenFrame = NSScreen.main?.frame, screenFrame.width > 0, screenFrame.height > 0 else { return }
-        let fractionX = axPoint.x / screenFrame.width
-        let fractionY = axPoint.y / screenFrame.height
-        state.highlightedZone = ZoneHitTesting.zone(containingFractionX: fractionX, fractionY: fractionY, in: state.zones)
+        guard let screen = NSScreen.main else { return }
+        let usableAXFrame = ScreenGeometry.usableAXFrame(fullScreenFrame: screen.frame, visibleScreenFrame: screen.visibleFrame)
+        state.highlightedZone = ZoneHitTesting.zone(containing: axPoint, screenFrame: usableAXFrame, in: state.zones)
     }
 }

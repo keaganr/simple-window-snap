@@ -48,11 +48,13 @@ source files or packages).
    permission status line (with buttons to grant it / open System Settings
    if not yet granted), and Quit.
 5. Once Accessibility is granted, drag detection starts automatically. Drag
-   any window (in any app) around - three hardcoded placeholder zones
-   (Left Third, Right Third, Top Center) appear as an overlay while
-   dragging, with the zone under the cursor highlighted in blue. Release to
-   see it disappear (there's no snapping yet - that's Phase 4). These
-   placeholder zones are replaced by real user-configured ones in Phase 5.
+   any window (in any app) by its title bar - three hardcoded placeholder
+   zones (Left Third, Right Third, Top Center) appear as an overlay, with
+   the zone under the cursor highlighted in blue. Release inside a zone and
+   the window snaps to fill it exactly. Resizing a window (dragging an
+   edge/corner) is deliberately ignored - no overlay, no snapping - since
+   that's not a "move to a zone" gesture. These placeholder zones are
+   replaced by real user-configured ones in Phase 5.
 6. To watch the detection internals instead of/alongside the overlay:
 
    ```sh

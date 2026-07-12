@@ -1,5 +1,6 @@
 import Testing
 @testable import SWSOverlay
+import CoreGraphics
 
 private let leftThird = NormalizedRect(x: 0, y: 0, width: 1.0 / 3, height: 1)
 private let rightThird = NormalizedRect(x: 2.0 / 3, y: 0, width: 1.0 / 3, height: 1)
@@ -35,4 +36,20 @@ private let allZones = [leftThird, rightThird, topCenter]
     let zones = [leftThird, overlapping]
     // (0.1, 0.1) is inside both leftThird and overlapping; first in the list wins.
     #expect(ZoneHitTesting.zone(containingFractionX: 0.1, fractionY: 0.1, in: zones) == leftThird)
+}
+
+private let screenFrame = CGRect(x: 0, y: 0, width: 1800, height: 1000)
+
+@Test func resolvedConvertsFractionsToScreenPixels() {
+    let axRect = topCenter.resolved(in: screenFrame)
+    #expect(axRect == CGRect(x: 600, y: 0, width: 600, height: 500))
+}
+
+@Test func zoneContainingPointMatchesFractionBasedLookup() {
+    let point = CGPoint(x: 900, y: 100) // inside topCenter in pixel space
+    #expect(ZoneHitTesting.zone(containing: point, screenFrame: screenFrame, in: allZones) == topCenter)
+}
+
+@Test func zoneContainingPointReturnsNilForZeroSizedScreenFrame() {
+    #expect(ZoneHitTesting.zone(containing: .zero, screenFrame: .zero, in: allZones) == nil)
 }
