@@ -34,6 +34,7 @@ targets:
         PRODUCT_NAME: Simple Window Snap
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: GK5YMCRFZN
         GENERATE_INFOPLIST_FILE: false
         ENABLE_HARDENED_RUNTIME: false
     dependencies:

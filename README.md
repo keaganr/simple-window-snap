@@ -36,9 +36,14 @@ source files or packages).
 
 ## Building & Running
 
-1. Open `SimpleWindowSnap.xcodeproj` in Xcode.
-2. Select the `SimpleWindowSnap` scheme and press ⌘R.
-3. The app has no Dock icon or window — look for its icon in the menu
+1. Make sure Xcode has an Apple ID signed in (Xcode → Settings… → Accounts)
+   and that the `SimpleWindowSnap` target's Signing & Capabilities tab has
+   a Team selected — the free "Personal Team" from your Apple ID is fine.
+   This is required for Accessibility permission to work at all reliably;
+   see the gotcha below.
+2. Open `SimpleWindowSnap.xcodeproj` in Xcode.
+3. Select the `SimpleWindowSnap` scheme and press ⌘R.
+4. The app has no Dock icon or window — look for its icon in the menu
    bar at the top of the screen. Click it to see the menu: an Accessibility
    permission status line (with buttons to grant it / open System Settings
    if not yet granted), and Quit.
@@ -65,11 +70,16 @@ other applications. It is distributed outside the Mac App Store and is
 unsandboxed by necessity, since the App Sandbox blocks the Accessibility
 APIs this app depends on.
 
-**Dev-cycle gotcha:** Xcode's Debug builds are signed "Sign to Run
-Locally," and that signature can change across rebuilds, which sometimes
-makes macOS "forget" a previously granted Accessibility permission. If
-the app stops being recognized as trusted after a rebuild even though you
-granted it before, remove the stale entry with:
+**Dev-cycle gotcha:** if Xcode has no Apple ID signed in, it falls back to
+signing Debug builds "Sign to Run Locally" — an ad-hoc signature that gets
+a *new* identity on effectively every rebuild. macOS's TCC permission
+database keys the Accessibility grant to that identity, so with ad-hoc
+signing, granting permission once basically never survives a rebuild (or
+sometimes even a relaunch). `project.yml` pins `DEVELOPMENT_TEAM` to a
+real Apple Development certificate (tied to an Apple ID's Personal Team)
+specifically to avoid this — the identity then stays stable across
+rebuilds and the grant sticks. If you ever change Apple IDs/teams, or see
+the permission mysteriously reset again, clear the stale entry with:
 
 ```sh
 tccutil reset Accessibility com.keaganr.SimpleWindowSnap
