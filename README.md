@@ -39,8 +39,9 @@ source files or packages).
 1. Open `SimpleWindowSnap.xcodeproj` in Xcode.
 2. Select the `SimpleWindowSnap` scheme and press ⌘R.
 3. The app has no Dock icon or window — look for its icon in the menu
-   bar at the top of the screen. Click it to see the menu (currently just
-   Quit).
+   bar at the top of the screen. Click it to see the menu: an Accessibility
+   permission status line (with buttons to grant it / open System Settings
+   if not yet granted), and Quit.
 
 To build from the command line instead:
 
@@ -63,3 +64,15 @@ Security → Accessibility) to observe and reposition windows belonging to
 other applications. It is distributed outside the Mac App Store and is
 unsandboxed by necessity, since the App Sandbox blocks the Accessibility
 APIs this app depends on.
+
+**Dev-cycle gotcha:** Xcode's Debug builds are signed "Sign to Run
+Locally," and that signature can change across rebuilds, which sometimes
+makes macOS "forget" a previously granted Accessibility permission. If
+the app stops being recognized as trusted after a rebuild even though you
+granted it before, remove the stale entry with:
+
+```sh
+tccutil reset Accessibility com.keaganr.SimpleWindowSnap
+```
+
+then grant it again from the app's menu.
