@@ -1,0 +1,44 @@
+name: SimpleWindowSnap
+options:
+  bundleIdPrefix: com.keaganr
+  deploymentTarget:
+    macOS: "13.0"
+packages:
+  SWSModel:
+    path: Packages/SWSModel
+  SWSAccessibility:
+    path: Packages/SWSAccessibility
+  SWSOverlay:
+    path: Packages/SWSOverlay
+  SWSUI:
+    path: Packages/SWSUI
+  SWSHotkey:
+    path: Packages/SWSHotkey
+targets:
+  SimpleWindowSnap:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Simple Window Snap
+        CFBundleShortVersionString: "0.1.0"
+        LSUIElement: true
+        LSMinimumSystemVersion: "$(MACOSX_DEPLOYMENT_TARGET)"
+        NSHumanReadableCopyright: "Copyright © 2026. All rights reserved."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.keaganr.SimpleWindowSnap
+        PRODUCT_NAME: Simple Window Snap
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: false
+        ENABLE_HARDENED_RUNTIME: false
+    dependencies:
+      - package: SWSModel
+      - package: SWSAccessibility
+      - package: SWSOverlay
+      - package: SWSUI
+      - package: SWSHotkey
