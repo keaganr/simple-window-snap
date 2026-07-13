@@ -10,15 +10,22 @@ public struct GridPickerView: View {
     private let rows: Int
     private let existingZones: [NormalizedRect]
     private let onCommit: (NormalizedRect) -> Void
+    private let onSelectExistingZone: (NormalizedRect) -> Void
 
     @State private var dragStartCell: (col: Int, row: Int)?
     @State private var dragCurrentCell: (col: Int, row: Int)?
+    @State private var clickedExistingZone: NormalizedRect?
 
-    public init(columns: Int = 6, rows: Int = 4, existingZones: [NormalizedRect], onCommit: @escaping (NormalizedRect) -> Void) {
+    public init(
+        columns: Int = 16, rows: Int = 9, existingZones: [NormalizedRect],
+        onCommit: @escaping (NormalizedRect) -> Void,
+        onSelectExistingZone: @escaping (NormalizedRect) -> Void = { _ in }
+    ) {
         self.columns = columns
         self.rows = rows
         self.existingZones = existingZones
         self.onCommit = onCommit
+        self.onSelectExistingZone = onSelectExistingZone
     }
 
     public var body: some View {
@@ -30,7 +37,7 @@ public struct GridPickerView: View {
                 gridLines(cellWidth: cellWidth, cellHeight: cellHeight)
 
                 ForEach(existingZones, id: \.self) { zone in
-                    zoneOverlay(zone, in: proxy.size, color: .gray)
+                    zoneOverlay(zone, in: proxy.size, color: zone == clickedExistingZone ? .accentColor : .gray)
                 }
 
                 if let previewRect = currentPreviewRect {
@@ -41,6 +48,16 @@ public struct GridPickerView: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
+                        let startFractionX = value.startLocation.x / proxy.size.width
+                        let startFractionY = value.startLocation.y / proxy.size.height
+                        if let occupiedZone = ZoneHitTesting.zone(
+                            containingFractionX: startFractionX, fractionY: startFractionY, in: existingZones
+                        ) {
+                            clickedExistingZone = occupiedZone
+                            return
+                        }
+                        guard clickedExistingZone == nil else { return }
+
                         let start = GridSelection.cell(
                             atOffsetX: value.startLocation.x, offsetY: value.startLocation.y,
                             cellWidth: cellWidth, cellHeight: cellHeight, columns: columns, rows: rows
@@ -49,15 +66,27 @@ public struct GridPickerView: View {
                             atOffsetX: value.location.x, offsetY: value.location.y,
                             cellWidth: cellWidth, cellHeight: cellHeight, columns: columns, rows: rows
                         )
+                        let candidateRect = GridSelection.normalizedRect(
+                            fromStartCol: start.col, startRow: start.row,
+                            currentCol: current.col, currentRow: current.row,
+                            columns: columns, rows: rows
+                        )
+                        // Freeze the selection at its last valid extent rather than
+                        // letting it grow into a cell an existing zone already occupies.
+                        guard !existingZones.contains(where: { $0.intersects(candidateRect) }) else { return }
+
                         dragStartCell = start
                         dragCurrentCell = current
                     }
                     .onEnded { _ in
-                        if let rect = currentPreviewRect {
+                        if let occupiedZone = clickedExistingZone {
+                            onSelectExistingZone(occupiedZone)
+                        } else if let rect = currentPreviewRect {
                             onCommit(rect)
                         }
                         dragStartCell = nil
                         dragCurrentCell = nil
+                        clickedExistingZone = nil
                     }
             )
         }

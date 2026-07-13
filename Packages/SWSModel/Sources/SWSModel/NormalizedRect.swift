@@ -20,6 +20,13 @@ public struct NormalizedRect: Codable, Equatable, Hashable, Sendable {
         fractionX >= x && fractionX <= x + width && fractionY >= y && fractionY <= y + height
     }
 
+    /// Whether this rect overlaps `other` by a nonzero area. Rects that
+    /// merely share an edge or corner don't count as intersecting.
+    public func intersects(_ other: NormalizedRect) -> Bool {
+        x < other.x + other.width && x + width > other.x
+            && y < other.y + other.height && y + height > other.y
+    }
+
     /// Resolves this fractional rect to actual pixels within `screenFrame`
     /// (e.g. the AX-space usable frame from `ScreenGeometry`), in the same
     /// coordinate space as `screenFrame`'s origin - top-left/AX space

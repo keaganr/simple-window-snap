@@ -38,6 +38,21 @@ private let allZones = [leftThird, rightThird, topCenter]
     #expect(ZoneHitTesting.zone(containingFractionX: 0.1, fractionY: 0.1, in: zones) == leftThird)
 }
 
+@Test func intersectsDetectsOverlappingRects() {
+    let overlapping = NormalizedRect(x: 0, y: 0, width: 0.5, height: 0.5)
+    #expect(leftThird.intersects(overlapping))
+    #expect(overlapping.intersects(leftThird))
+}
+
+@Test func intersectsIsFalseForNonOverlappingRects() {
+    #expect(!leftThird.intersects(rightThird))
+}
+
+@Test func intersectsIsFalseForRectsThatOnlyShareAnEdge() {
+    let adjacent = NormalizedRect(x: 1.0 / 3, y: 0, width: 1.0 / 3, height: 1)
+    #expect(!leftThird.intersects(adjacent))
+}
+
 private let screenFrame = CGRect(x: 0, y: 0, width: 1800, height: 1000)
 
 @Test func resolvedConvertsFractionsToScreenPixels() {
