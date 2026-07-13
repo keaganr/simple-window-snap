@@ -56,13 +56,18 @@ source files or packages).
    gesture.
 6. Click "Edit Zones…" in the menu to open the zone editor: drag across the
    grid to draw a new zone (existing zones are shown in gray for context),
-   rename zones inline, or delete them. Changes save to
-   `~/Library/Application Support/SimpleWindowSnap/configurations.json`
-   immediately and take effect on your next drag - no restart needed. A
-   fresh install seeds one "Default" configuration with three starter zones
-   (Left Third, Right Third, Top Center); switching between multiple
-   configurations is Phase 6.
-7. To watch the detection internals instead of/alongside the overlay:
+   rename zones inline, or delete them. The configuration name field, "New
+   Configuration", and "Delete" at the top manage configurations
+   themselves - the editor always shows whichever configuration is
+   currently active. Changes save to `~/Library/Application Support/
+   SimpleWindowSnap/configurations.json` immediately and take effect on
+   your next drag - no restart needed. A fresh install seeds one "Default"
+   configuration with three starter zones (Left Third, Right Third, Top
+   Center).
+7. The menu's "Configurations ▸" submenu lists every configuration (✓ on
+   the active one) - click any to switch instantly; the overlay and
+   snapping immediately reflect whichever configuration is active.
+8. To watch the detection internals instead of/alongside the overlay:
 
    ```sh
    /usr/bin/log stream --predicate 'subsystem == "com.keaganr.SimpleWindowSnap"' --style compact --level debug

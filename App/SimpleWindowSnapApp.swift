@@ -7,7 +7,7 @@ struct SimpleWindowSnapApp: App {
 
     var body: some Scene {
         MenuBarExtra("Simple Window Snap", systemImage: "rectangle.3.group") {
-            MenuBarContentView(permissionManager: appDelegate.permissionManager)
+            MenuBarContentView(permissionManager: appDelegate.permissionManager, configurationStore: appDelegate.configurationStore)
         }
         .menuBarExtraStyle(.menu)
 

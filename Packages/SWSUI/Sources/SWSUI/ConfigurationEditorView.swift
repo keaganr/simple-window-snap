@@ -11,8 +11,29 @@ public struct ConfigurationEditorView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let configuration = store.activeConfiguration {
-                Text(configuration.name)
+                HStack {
+                    TextField(
+                        "Configuration Name",
+                        text: Binding(
+                            get: { configuration.name },
+                            set: { store.renameConfiguration(configuration.id, to: $0) }
+                        )
+                    )
                     .font(.headline)
+                    .textFieldStyle(.plain)
+
+                    Spacer()
+
+                    Button("New Configuration") {
+                        let newConfiguration = store.addConfiguration(name: "New Configuration")
+                        store.setActiveConfiguration(newConfiguration.id)
+                    }
+
+                    Button("Delete", role: .destructive) {
+                        store.deleteConfiguration(configuration.id)
+                    }
+                    .disabled(store.configurations.count <= 1)
+                }
 
                 Text("Drag across the grid to add a zone.")
                     .font(.subheadline)

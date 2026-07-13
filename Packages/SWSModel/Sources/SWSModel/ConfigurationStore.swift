@@ -85,6 +85,33 @@ public final class ConfigurationStore: ObservableObject {
         persist()
     }
 
+    @discardableResult
+    public func addConfiguration(name: String) -> SnapConfiguration {
+        let configuration = SnapConfiguration(name: name)
+        configurations.append(configuration)
+        persist()
+        return configuration
+    }
+
+    /// No-op if `id` is the only remaining configuration - there must
+    /// always be at least one for the app to have anything to snap to.
+    /// If the active configuration is deleted, the first remaining one
+    /// becomes active.
+    public func deleteConfiguration(_ id: UUID) {
+        guard configurations.count > 1 else { return }
+        configurations.removeAll { $0.id == id }
+        if activeConfigurationID == id {
+            activeConfigurationID = configurations.first?.id
+        }
+        persist()
+    }
+
+    public func renameConfiguration(_ id: UUID, to name: String) {
+        guard let index = configurations.firstIndex(where: { $0.id == id }) else { return }
+        configurations[index].name = name
+        persist()
+    }
+
     private func persist() {
         let state = SWSStore(configurations: configurations, activeConfigurationID: activeConfigurationID)
         do {

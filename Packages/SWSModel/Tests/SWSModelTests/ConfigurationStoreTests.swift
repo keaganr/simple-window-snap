@@ -73,6 +73,48 @@ private func makeTempStoreURL() -> URL {
     #expect(store.activeConfigurationID == originalActiveID)
 }
 
+@Test @MainActor func addConfigurationAppendsWithoutActivatingIt() {
+    let store = ConfigurationStore(fileURL: makeTempStoreURL())
+    let originalActiveID = store.activeConfigurationID
+
+    let newConfiguration = store.addConfiguration(name: "Second")
+
+    #expect(store.configurations.count == 2)
+    #expect(store.configurations.contains(where: { $0.id == newConfiguration.id && $0.name == "Second" }))
+    #expect(store.activeConfigurationID == originalActiveID)
+}
+
+@Test @MainActor func deleteConfigurationFallsBackWhenActiveOneIsDeleted() throws {
+    let store = ConfigurationStore(fileURL: makeTempStoreURL())
+    let firstID = try #require(store.activeConfigurationID)
+    let second = store.addConfiguration(name: "Second")
+    store.setActiveConfiguration(second.id)
+
+    store.deleteConfiguration(second.id)
+
+    #expect(store.configurations.count == 1)
+    #expect(store.activeConfigurationID == firstID)
+}
+
+@Test @MainActor func deleteConfigurationRefusesToRemoveTheLastOne() throws {
+    let store = ConfigurationStore(fileURL: makeTempStoreURL())
+    let onlyID = try #require(store.activeConfigurationID)
+
+    store.deleteConfiguration(onlyID)
+
+    #expect(store.configurations.count == 1)
+    #expect(store.activeConfigurationID == onlyID)
+}
+
+@Test @MainActor func renameConfigurationUpdatesTheName() throws {
+    let store = ConfigurationStore(fileURL: makeTempStoreURL())
+    let id = try #require(store.activeConfigurationID)
+
+    store.renameConfiguration(id, to: "Renamed Config")
+
+    #expect(store.activeConfiguration?.name == "Renamed Config")
+}
+
 @Test func swsStoreRoundTripsThroughJSON() throws {
     let configuration = SnapConfiguration(name: "Test", zones: [
         SnapZone(name: "Zone A", rect: NormalizedRect(x: 0, y: 0, width: 0.5, height: 0.5)),
