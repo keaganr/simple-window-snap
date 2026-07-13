@@ -25,10 +25,6 @@ let package = Package(
             name: "SWSHotkey",
             dependencies: ["KeyboardShortcuts"]
         ),
-        .testTarget(
-            name: "SWSHotkeyTests",
-            dependencies: ["SWSHotkey"]
-        ),
     ],
     swiftLanguageModes: [.v6]
 )

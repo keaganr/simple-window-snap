@@ -16,13 +16,14 @@ let package = Package(
     dependencies: [
         .package(path: "../SWSAccessibility"),
         .package(path: "../SWSModel"),
+        .package(path: "../SWSHotkey"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SWSUI",
-            dependencies: ["SWSAccessibility", "SWSModel"]
+            dependencies: ["SWSAccessibility", "SWSModel", "SWSHotkey"]
         ),
         .testTarget(
             name: "SWSUITests",

@@ -49,6 +49,10 @@ public struct MenuBarContentView: View {
             openWindow(id: zoneEditorWindowID)
         }
 
+        Button("Preferences…") {
+            openWindow(id: preferencesWindowID)
+        }
+
         Divider()
 
         Button("Quit Simple Window Snap") {
@@ -58,6 +62,7 @@ public struct MenuBarContentView: View {
     }
 }
 
-/// Shared with `SimpleWindowSnapApp`'s `Window(id:)` declaration for the
-/// zone editor - both sides must agree on this identifier.
+/// Shared with `SimpleWindowSnapApp`'s `Window(id:)` declarations - both
+/// sides must agree on these identifiers.
 public let zoneEditorWindowID = "zone-editor"
+public let preferencesWindowID = "preferences"

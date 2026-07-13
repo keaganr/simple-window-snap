@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import SWSAccessibility
+import SWSHotkey
 import SWSModel
 import SWSOverlay
 
@@ -10,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let configurationStore = ConfigurationStore()
     private let dragDetectionEngine = DragDetectionEngine()
     private let overlayController = OverlayWindowController()
+    private let hotkeyObserver = SnapHotkeyObserver()
     private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -26,15 +28,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        // CombineLatest rather than keying off `$phase` alone: pressing the
+        // suppression hotkey mid-drag (`$isSnapSuppressed` changing without
+        // `$phase` changing) must hide the overlay immediately too, not just
+        // affect the eventual snap decision.
         dragDetectionEngine.$phase
-            .removeDuplicates()
-            .sink { [overlayController, configurationStore] phase in
+            .combineLatest(dragDetectionEngine.$isSnapSuppressed)
+            .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 }
+            .sink { [overlayController, configurationStore] phase, isSuppressed in
                 MainActor.assumeIsolated {
-                    switch phase {
-                    case .dragging:
+                    if case .dragging = phase, !isSuppressed {
                         let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []
                         overlayController.show(zones: zones)
-                    case .idle, .candidate:
+                    } else {
                         overlayController.hide()
                     }
                 }
@@ -49,12 +55,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        hotkeyObserver.onTrigger = { [dragDetectionEngine] in
+            dragDetectionEngine.toggleSnapSuppression()
+        }
+
         // Deliberately independent of `overlayController`'s internal state
         // (rather than reading back its `highlightedZone`) since Combine's
         // `$phase` sink above - which hides the overlay - fires synchronously
         // *during* the `phase` assignment inside `apply(_:)`, before this
         // callback (a separate statement later in that same method) runs.
         // Recomputing from `cursorLocation` sidesteps that ordering entirely.
+        // (`isSnapSuppressed` is also checked inside the engine itself before
+        // this callback ever fires - see `apply(_:)`.)
         dragDetectionEngine.onDragEnded = { [dragDetectionEngine, configurationStore] in
             guard let screen = NSScreen.main else { return }
             let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []

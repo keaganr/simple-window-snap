@@ -24,6 +24,10 @@ public final class DragDetectionEngine: ObservableObject {
     /// Cursor location in AX/Quartz space (top-left origin), updated on
     /// every mouse-down/dragged event while a drag is in progress.
     @Published public private(set) var cursorLocation: CGPoint = .zero
+    /// Set by `toggleSnapSuppression()` (wired to the global hotkey) to
+    /// disable the overlay/snap for the remainder of the current drag only
+    /// - reset at the next mouse-down regardless of its value here.
+    @Published public private(set) var isSnapSuppressed = false
 
     /// Called synchronously when a drag ends (mouse-up while `.dragging`),
     /// *before* the candidate window reference is cleared - the handler
@@ -156,9 +160,17 @@ public final class DragDetectionEngine: ObservableObject {
         guard phase != previous else { return }
         logger.debug("Drag phase \(String(describing: previous), privacy: .public) -> \(String(describing: self.phase), privacy: .public)")
 
-        if case .dragging = previous, case .idle = phase, sawGenuineWindowMove {
+        if case .dragging = previous, case .idle = phase, sawGenuineWindowMove, !isSnapSuppressed {
             onDragEnded?()
         }
+    }
+
+    /// Toggles whether the overlay/snap is suppressed for the remainder of
+    /// the current drag. Wired to the global hotkey - pressing it once
+    /// during a drag disables snapping for that drag; pressing it again
+    /// re-enables it. Automatically resets at the next mouse-down.
+    public func toggleSnapSuppression() {
+        isSnapSuppressed.toggle()
     }
 
     /// Repositions the window captured at the most recent eligible
@@ -178,6 +190,7 @@ public final class DragDetectionEngine: ObservableObject {
     private func logWindow(atMouseLocation location: CGPoint) {
         candidateWindow = nil
         sawGenuineWindowMove = false
+        isSnapSuppressed = false
 
         guard let primaryScreenHeight = NSScreen.screens.first?.frame.height else { return }
         let axPoint = CoordinateConversion.flipPointY(location, primaryScreenHeight: primaryScreenHeight)
