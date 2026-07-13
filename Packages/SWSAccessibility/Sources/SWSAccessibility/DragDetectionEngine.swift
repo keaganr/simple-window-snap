@@ -36,6 +36,18 @@ public final class DragDetectionEngine: ObservableObject {
     /// dragging, so that would conflict.)
     @Published public private(set) var isSnapSuppressed = false
 
+    /// Called each time Option transitions from up to down while `.dragging`
+    /// - i.e. once per keypress, not continuously while held. Intended for
+    /// swapping to the next snap configuration mid-drag; not latched like
+    /// `isSnapSuppressed` since the user should be able to press it multiple
+    /// times to cycle through more than two configurations.
+    public var onCycleConfigurationRequested: (() -> Void)?
+
+    /// Whether Option was down as of the last `.flagsChanged` event, used to
+    /// detect the up-to-down transition above rather than firing repeatedly
+    /// while held.
+    private var wasOptionKeyDown = false
+
     /// Called synchronously when a drag ends (mouse-up while `.dragging`),
     /// *before* the candidate window reference is cleared - the handler
     /// can call `snapCandidateWindow(toAXRect:)` from within this callback
@@ -129,6 +141,12 @@ public final class DragDetectionEngine: ObservableObject {
             if event.modifierFlags.contains(.control) {
                 isSnapSuppressed = true
             }
+
+            let isOptionKeyDown = event.modifierFlags.contains(.option)
+            if isOptionKeyDown, !wasOptionKeyDown, case .dragging = phase {
+                onCycleConfigurationRequested?()
+            }
+            wasOptionKeyDown = isOptionKeyDown
             return
         }
 
@@ -200,6 +218,10 @@ public final class DragDetectionEngine: ObservableObject {
         // this drag started, no further .flagsChanged event will fire
         // during the drag to tell us that, so read the live state directly.
         isSnapSuppressed = NSEvent.modifierFlags.contains(.control)
+        // Mirrors the line above: if Option is already held when the drag
+        // starts, this isn't a fresh keypress, so seed the edge-detector
+        // with the live state rather than defaulting to false.
+        wasOptionKeyDown = NSEvent.modifierFlags.contains(.option)
 
         guard let primaryScreenHeight = NSScreen.screens.first?.frame.height else { return }
         let axPoint = CoordinateConversion.flipPointY(location, primaryScreenHeight: primaryScreenHeight)

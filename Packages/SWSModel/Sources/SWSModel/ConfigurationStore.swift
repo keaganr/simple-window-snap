@@ -85,6 +85,18 @@ public final class ConfigurationStore: ObservableObject {
         persist()
     }
 
+    /// Cycles the active configuration to the next one in `configurations`,
+    /// wrapping around after the last. Used to swap profiles mid-drag
+    /// (e.g. on each Option keypress) - the swap is persisted immediately,
+    /// same as any other `setActiveConfiguration` call, so the last one
+    /// picked is still active the next time a drag starts.
+    public func activateNextConfiguration() {
+        guard !configurations.isEmpty else { return }
+        let currentIndex = configurations.firstIndex { $0.id == activeConfigurationID } ?? -1
+        let nextIndex = (currentIndex + 1) % configurations.count
+        setActiveConfiguration(configurations[nextIndex].id)
+    }
+
     @discardableResult
     public func addConfiguration(name: String) -> SnapConfiguration {
         let configuration = SnapConfiguration(name: name)

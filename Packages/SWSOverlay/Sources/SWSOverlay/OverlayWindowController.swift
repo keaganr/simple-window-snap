@@ -32,11 +32,19 @@ public final class OverlayWindowController {
     /// matching `snapCandidateWindow`'s target rects - see `ScreenGeometry`.
     /// Call `updateCursor(atAXPoint:)` as the drag continues to update which
     /// zone is highlighted.
-    public func show(zones: [NormalizedRect]) {
+    ///
+    /// `configurationNames`/`activeConfigurationIndex` drive the
+    /// mid-screen configuration switcher shown while cycling profiles via
+    /// Option (see `DragDetectionEngine.onCycleConfigurationRequested`).
+    /// Safe to call again while already showing - e.g. to refresh zones
+    /// after a profile swap without a full hide/show cycle.
+    public func show(zones: [NormalizedRect], configurationNames: [String] = [], activeConfigurationIndex: Int? = nil) {
         guard let visibleFrame = NSScreen.main?.visibleFrame else { return }
         window.setFrame(visibleFrame, display: false)
         state.zones = zones
         state.highlightedZone = nil
+        state.configurationNames = configurationNames
+        state.activeConfigurationIndex = activeConfigurationIndex
         window.orderFrontRegardless()
     }
 

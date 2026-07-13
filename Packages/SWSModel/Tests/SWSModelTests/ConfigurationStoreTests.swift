@@ -115,6 +115,33 @@ private func makeTempStoreURL() -> URL {
     #expect(store.activeConfiguration?.name == "Renamed Config")
 }
 
+@Test @MainActor func activateNextConfigurationCyclesThroughAndWraps() throws {
+    let store = ConfigurationStore(fileURL: makeTempStoreURL())
+    let firstID = try #require(store.activeConfigurationID)
+    let second = store.addConfiguration(name: "Second")
+    let third = store.addConfiguration(name: "Third")
+
+    store.activateNextConfiguration()
+    #expect(store.activeConfigurationID == second.id)
+
+    store.activateNextConfiguration()
+    #expect(store.activeConfigurationID == third.id)
+
+    store.activateNextConfiguration()
+    #expect(store.activeConfigurationID == firstID)
+}
+
+@Test @MainActor func activateNextConfigurationPersists() throws {
+    let url = makeTempStoreURL()
+    let store = ConfigurationStore(fileURL: url)
+    let second = store.addConfiguration(name: "Second")
+
+    store.activateNextConfiguration()
+
+    let reloaded = ConfigurationStore(fileURL: url)
+    #expect(reloaded.activeConfigurationID == second.id)
+}
+
 @Test func swsStoreRoundTripsThroughJSON() throws {
     let configuration = SnapConfiguration(name: "Test", zones: [
         SnapZone(name: "Zone A", rect: NormalizedRect(x: 0, y: 0, width: 0.5, height: 0.5)),

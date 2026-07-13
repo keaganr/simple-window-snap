@@ -29,15 +29,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // CombineLatest rather than keying off `$phase` alone: releasing/
         // holding Control mid-drag (`$isSnapSuppressed` changing without
         // `$phase` changing) must hide/show the overlay immediately too, not
-        // just affect the eventual snap decision.
+        // just affect the eventual snap decision. `$activeConfigurationID`
+        // is included too so swapping profiles mid-drag (Option key, see
+        // `onCycleConfigurationRequested` below) refreshes the shown zones
+        // and switcher highlight without waiting for the next phase change.
         dragDetectionEngine.$phase
-            .combineLatest(dragDetectionEngine.$isSnapSuppressed)
-            .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 }
-            .sink { [overlayController, configurationStore] phase, isSuppressed in
+            .combineLatest(dragDetectionEngine.$isSnapSuppressed, configurationStore.$activeConfigurationID)
+            .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 && $0.2 == $1.2 }
+            .sink { [overlayController, configurationStore] phase, isSuppressed, _ in
                 MainActor.assumeIsolated {
                     if case .dragging = phase, !isSuppressed {
+                        let configurations = configurationStore.configurations
                         let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []
-                        overlayController.show(zones: zones)
+                        let activeIndex = configurations.firstIndex { $0.id == configurationStore.activeConfigurationID }
+                        overlayController.show(
+                            zones: zones,
+                            configurationNames: configurations.map(\.name),
+                            activeConfigurationIndex: activeIndex
+                        )
                     } else {
                         overlayController.hide()
                     }
@@ -52,6 +61,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
+
+        dragDetectionEngine.onCycleConfigurationRequested = { [configurationStore] in
+            MainActor.assumeIsolated {
+                configurationStore.activateNextConfiguration()
+            }
+        }
 
         // Deliberately independent of `overlayController`'s internal state
         // (rather than reading back its `highlightedZone`) since Combine's
