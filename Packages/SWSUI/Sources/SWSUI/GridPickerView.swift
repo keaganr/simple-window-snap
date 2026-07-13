@@ -5,9 +5,13 @@ import SWSModel
 /// cells (à la Rectangle's snap picker). Existing zones for the
 /// configuration are drawn alongside so the user can see the whole layout
 /// while adding a new one.
+///
+/// The grid lines are spaced to land on clean halves/thirds/quarters/fifths
+/// (see `GridSelection`) rather than a uniform N-column grid, so dragging
+/// between any two lines always produces a "nice" fraction.
 public struct GridPickerView: View {
-    private let columns: Int
-    private let rows: Int
+    private let columnBreakpoints: [Double]
+    private let rowBreakpoints: [Double]
     private let existingZones: [NormalizedRect]
     private let onCommit: (NormalizedRect) -> Void
     private let onSelectExistingZone: (NormalizedRect) -> Void
@@ -17,12 +21,14 @@ public struct GridPickerView: View {
     @State private var clickedExistingZone: NormalizedRect?
 
     public init(
-        columns: Int = 16, rows: Int = 9, existingZones: [NormalizedRect],
+        columnBreakpoints: [Double] = GridSelection.columnBreakpoints,
+        rowBreakpoints: [Double] = GridSelection.rowBreakpoints,
+        existingZones: [NormalizedRect],
         onCommit: @escaping (NormalizedRect) -> Void,
         onSelectExistingZone: @escaping (NormalizedRect) -> Void = { _ in }
     ) {
-        self.columns = columns
-        self.rows = rows
+        self.columnBreakpoints = columnBreakpoints
+        self.rowBreakpoints = rowBreakpoints
         self.existingZones = existingZones
         self.onCommit = onCommit
         self.onSelectExistingZone = onSelectExistingZone
@@ -30,11 +36,8 @@ public struct GridPickerView: View {
 
     public var body: some View {
         GeometryReader { proxy in
-            let cellWidth = proxy.size.width / CGFloat(columns)
-            let cellHeight = proxy.size.height / CGFloat(rows)
-
             ZStack {
-                gridLines(cellWidth: cellWidth, cellHeight: cellHeight)
+                gridLines()
 
                 ForEach(existingZones, id: \.self) { zone in
                     zoneOverlay(zone, in: proxy.size, color: zone == clickedExistingZone ? .accentColor : .gray)
@@ -60,16 +63,18 @@ public struct GridPickerView: View {
 
                         let start = GridSelection.cell(
                             atOffsetX: value.startLocation.x, offsetY: value.startLocation.y,
-                            cellWidth: cellWidth, cellHeight: cellHeight, columns: columns, rows: rows
+                            width: proxy.size.width, height: proxy.size.height,
+                            columnBreakpoints: columnBreakpoints, rowBreakpoints: rowBreakpoints
                         )
                         let current = GridSelection.cell(
                             atOffsetX: value.location.x, offsetY: value.location.y,
-                            cellWidth: cellWidth, cellHeight: cellHeight, columns: columns, rows: rows
+                            width: proxy.size.width, height: proxy.size.height,
+                            columnBreakpoints: columnBreakpoints, rowBreakpoints: rowBreakpoints
                         )
                         let candidateRect = GridSelection.normalizedRect(
                             fromStartCol: start.col, startRow: start.row,
                             currentCol: current.col, currentRow: current.row,
-                            columns: columns, rows: rows
+                            columnBreakpoints: columnBreakpoints, rowBreakpoints: rowBreakpoints
                         )
                         // Freeze the selection at its last valid extent rather than
                         // letting it grow into a cell an existing zone already occupies.
@@ -90,7 +95,7 @@ public struct GridPickerView: View {
                     }
             )
         }
-        .aspectRatio(CGFloat(columns) / CGFloat(rows), contentMode: .fit)
+        .aspectRatio(16.0 / 9, contentMode: .fit)
     }
 
     private var currentPreviewRect: NormalizedRect? {
@@ -98,20 +103,20 @@ public struct GridPickerView: View {
         return GridSelection.normalizedRect(
             fromStartCol: start.col, startRow: start.row,
             currentCol: current.col, currentRow: current.row,
-            columns: columns, rows: rows
+            columnBreakpoints: columnBreakpoints, rowBreakpoints: rowBreakpoints
         )
     }
 
-    private func gridLines(cellWidth: CGFloat, cellHeight: CGFloat) -> some View {
+    private func gridLines() -> some View {
         Canvas { context, size in
             var path = Path()
-            for col in 0...columns {
-                let x = CGFloat(col) * cellWidth
+            for fraction in columnBreakpoints {
+                let x = CGFloat(fraction) * size.width
                 path.move(to: CGPoint(x: x, y: 0))
                 path.addLine(to: CGPoint(x: x, y: size.height))
             }
-            for row in 0...rows {
-                let y = CGFloat(row) * cellHeight
+            for fraction in rowBreakpoints {
+                let y = CGFloat(fraction) * size.height
                 path.move(to: CGPoint(x: 0, y: y))
                 path.addLine(to: CGPoint(x: size.width, y: y))
             }
