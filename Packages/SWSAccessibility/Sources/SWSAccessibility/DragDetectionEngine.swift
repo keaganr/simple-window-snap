@@ -24,10 +24,14 @@ public final class DragDetectionEngine: ObservableObject {
     /// Cursor location in AX/Quartz space (top-left origin), updated on
     /// every mouse-down/dragged event while a drag is in progress.
     @Published public private(set) var cursorLocation: CGPoint = .zero
-    /// Live-tracks whether Control is currently held: true for as long as
-    /// it's down, false the instant it's released. Holding it disables the
-    /// overlay/snap for the drag in progress - not a toggle, so there's
-    /// nothing to remember to turn back off. (Not Option: macOS's own
+    /// Whether Control has been pressed at any point since the current drag
+    /// started: a single tap latches this `true` for the rest of the drag,
+    /// even after Control is released - it never goes back to `false` until
+    /// the next mouse-down. Releasing Control at the same instant as the
+    /// mouse button (a common way to end a drag) used to race the live
+    /// modifier state and could leave snapping enabled by accident; latching
+    /// removes that race, at the cost of no longer being able to change your
+    /// mind mid-drag once you've tapped Control. (Not Option: macOS's own
     /// native window tiling is already bound to holding Option while
     /// dragging, so that would conflict.)
     @Published public private(set) var isSnapSuppressed = false
@@ -122,7 +126,9 @@ public final class DragDetectionEngine: ObservableObject {
 
     private func handle(_ event: NSEvent) {
         if event.type == .flagsChanged {
-            isSnapSuppressed = event.modifierFlags.contains(.control)
+            if event.modifierFlags.contains(.control) {
+                isSnapSuppressed = true
+            }
             return
         }
 
