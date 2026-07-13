@@ -112,3 +112,35 @@ A proper `.dmg` with a nicer installer experience (drag-to-Applications
 background, etc.) is a further nice-to-have not covered here - tools like
 [`create-dmg`](https://github.com/create-dmg/create-dmg) handle that well
 if/when it's worth the extra polish.
+
+## Automated releases (GitHub Actions)
+
+`.github/workflows/release.yml` does everything above automatically:
+push a tag like `v0.2.0` and it archives, signs, notarizes, staples, and
+attaches the resulting zip to a GitHub Release.
+
+It needs these repo secrets (**Settings → Secrets and variables →
+Actions**):
+
+| Secret | What it is |
+| --- | --- |
+| `BUILD_CERTIFICATE_BASE64` | Your Developer ID Application cert + private key, exported from Keychain Access as a `.p12`, then `base64 -i cert.p12 \| pbcopy`. |
+| `P12_PASSWORD` | The password you set when exporting that `.p12`. |
+| `KEYCHAIN_PASSWORD` | Any random string - just used to protect the throwaway keychain created during the CI run. |
+| `APPLE_API_KEY_ID` | Key ID of an App Store Connect API key (**Users and Access → Integrations → App Store Connect API** on appstoreconnect.apple.com). Create one with the "Developer" role. |
+| `APPLE_API_ISSUER` | The Issuer ID shown on that same API Keys page. |
+| `APPLE_API_KEY_BASE64` | The downloaded `AuthKey_<KEY_ID>.p8` file, base64-encoded (`base64 -i AuthKey_XXXX.p8 \| pbcopy`). Apple only lets you download this once, so save the original `.p8` somewhere safe. |
+
+An API key is used instead of an Apple ID + app-specific password because
+it doesn't depend on 2FA/session state, which suits unattended CI runs.
+
+To cut a release:
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The team ID (`GK5YMCRFZN`) is hardcoded in the workflow and in
+`ExportOptions.plist` - update both if you ever sign with a different
+Developer ID team.
