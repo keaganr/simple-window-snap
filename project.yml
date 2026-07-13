@@ -12,8 +12,6 @@ packages:
     path: Packages/SWSOverlay
   SWSUI:
     path: Packages/SWSUI
-  SWSHotkey:
-    path: Packages/SWSHotkey
 targets:
   SimpleWindowSnap:
     type: application
@@ -42,4 +40,3 @@ targets:
       - package: SWSAccessibility
       - package: SWSOverlay
       - package: SWSUI
-      - package: SWSHotkey

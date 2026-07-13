@@ -24,9 +24,12 @@ public final class DragDetectionEngine: ObservableObject {
     /// Cursor location in AX/Quartz space (top-left origin), updated on
     /// every mouse-down/dragged event while a drag is in progress.
     @Published public private(set) var cursorLocation: CGPoint = .zero
-    /// Set by `toggleSnapSuppression()` (wired to the global hotkey) to
-    /// disable the overlay/snap for the remainder of the current drag only
-    /// - reset at the next mouse-down regardless of its value here.
+    /// Live-tracks whether Control is currently held: true for as long as
+    /// it's down, false the instant it's released. Holding it disables the
+    /// overlay/snap for the drag in progress - not a toggle, so there's
+    /// nothing to remember to turn back off. (Not Option: macOS's own
+    /// native window tiling is already bound to holding Option while
+    /// dragging, so that would conflict.)
     @Published public private(set) var isSnapSuppressed = false
 
     /// Called synchronously when a drag ends (mouse-up while `.dragging`),
@@ -78,7 +81,7 @@ public final class DragDetectionEngine: ObservableObject {
         logger.info("Starting drag detection")
 
         mouseMonitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
+            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp, .flagsChanged]
         ) { [weak self] event in
             self?.handle(event)
         }
@@ -118,6 +121,11 @@ public final class DragDetectionEngine: ObservableObject {
     // MARK: - Mouse events
 
     private func handle(_ event: NSEvent) {
+        if event.type == .flagsChanged {
+            isSnapSuppressed = event.modifierFlags.contains(.control)
+            return
+        }
+
         let location = NSEvent.mouseLocation // AppKit space: bottom-left origin
         let lifecycleEvent: DragLifecycleEvent
         switch event.type {
@@ -165,14 +173,6 @@ public final class DragDetectionEngine: ObservableObject {
         }
     }
 
-    /// Toggles whether the overlay/snap is suppressed for the remainder of
-    /// the current drag. Wired to the global hotkey - pressing it once
-    /// during a drag disables snapping for that drag; pressing it again
-    /// re-enables it. Automatically resets at the next mouse-down.
-    public func toggleSnapSuppression() {
-        isSnapSuppressed.toggle()
-    }
-
     /// Repositions the window captured at the most recent eligible
     /// mouse-down to `rect` (AX/Quartz space). No-op if there is no
     /// candidate window (e.g. the drag started on the desktop, or the
@@ -190,7 +190,10 @@ public final class DragDetectionEngine: ObservableObject {
     private func logWindow(atMouseLocation location: CGPoint) {
         candidateWindow = nil
         sawGenuineWindowMove = false
-        isSnapSuppressed = false
+        // Not unconditionally false: if Control was already held down before
+        // this drag started, no further .flagsChanged event will fire
+        // during the drag to tell us that, so read the live state directly.
+        isSnapSuppressed = NSEvent.modifierFlags.contains(.control)
 
         guard let primaryScreenHeight = NSScreen.screens.first?.frame.height else { return }
         let axPoint = CoordinateConversion.flipPointY(location, primaryScreenHeight: primaryScreenHeight)

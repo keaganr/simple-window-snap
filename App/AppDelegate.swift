@@ -1,7 +1,6 @@
 import AppKit
 import Combine
 import SWSAccessibility
-import SWSHotkey
 import SWSModel
 import SWSOverlay
 
@@ -11,7 +10,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let configurationStore = ConfigurationStore()
     private let dragDetectionEngine = DragDetectionEngine()
     private let overlayController = OverlayWindowController()
-    private let hotkeyObserver = SnapHotkeyObserver()
     private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -28,10 +26,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
-        // CombineLatest rather than keying off `$phase` alone: pressing the
-        // suppression hotkey mid-drag (`$isSnapSuppressed` changing without
-        // `$phase` changing) must hide the overlay immediately too, not just
-        // affect the eventual snap decision.
+        // CombineLatest rather than keying off `$phase` alone: releasing/
+        // holding Control mid-drag (`$isSnapSuppressed` changing without
+        // `$phase` changing) must hide/show the overlay immediately too, not
+        // just affect the eventual snap decision.
         dragDetectionEngine.$phase
             .combineLatest(dragDetectionEngine.$isSnapSuppressed)
             .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 }
@@ -54,10 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             .store(in: &cancellables)
-
-        hotkeyObserver.onTrigger = { [dragDetectionEngine] in
-            dragDetectionEngine.toggleSnapSuppression()
-        }
 
         // Deliberately independent of `overlayController`'s internal state
         // (rather than reading back its `highlightedZone`) since Combine's

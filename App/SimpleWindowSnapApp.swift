@@ -15,10 +15,5 @@ struct SimpleWindowSnapApp: App {
             ConfigurationEditorView(store: appDelegate.configurationStore)
         }
         .windowResizability(.contentSize)
-
-        Window("Preferences", id: preferencesWindowID) {
-            PreferencesView()
-        }
-        .windowResizability(.contentSize)
     }
 }

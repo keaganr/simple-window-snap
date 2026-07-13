@@ -25,7 +25,6 @@ Packages/
   SWSAccessibility/   # Drag-detection engine + AX window read/write
   SWSOverlay/         # Transparent click-through zone overlay
   SWSUI/              # SwiftUI views (menu bar, grid picker, editor)
-  SWSHotkey/          # Thin wrapper around the KeyboardShortcuts dependency
 project.yml           # XcodeGen spec — source of truth for the .xcodeproj
 ```
 
@@ -67,11 +66,13 @@ source files or packages).
 7. The menu's "Configurations ▸" submenu lists every configuration (✓ on
    the active one) - click any to switch instantly; the overlay and
    snapping immediately reflect whichever configuration is active.
-8. Press `⌃⌥⌘D` (Control-Option-Command-D, the default) while dragging a
-   window to disable snapping for that one drag only - the overlay
-   disappears immediately and releasing won't snap. Press it again to
-   re-enable before releasing. It resets automatically on your next drag
-   regardless. Change the hotkey any time from "Preferences…" in the menu.
+8. Hold **Control** while dragging to disable snapping for that drag - the
+   overlay disappears immediately and releasing won't snap; let go of
+   Control (before releasing the mouse) to re-enable it. It's a live hold,
+   not a toggle to remember - whatever Control's state is at the moment
+   you release the mouse is what happens. (Not Option: macOS's own native
+   window tiling is already bound to holding Option while dragging, so
+   that would conflict.)
 9. To watch the detection internals instead of/alongside the overlay:
 
    ```sh

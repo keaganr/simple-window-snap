@@ -10,7 +10,6 @@
 		255E0E299236EDE80ED00E83 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EE3C83CF90D50FCCDE813BA /* AppDelegate.swift */; };
 		344577CE2A3238C18084DD23 /* SWSOverlay in Frameworks */ = {isa = PBXBuildFile; productRef = 663D3C0504A0677D37FB2E2B /* SWSOverlay */; };
 		8EC6B2109289A7EBD8C1C6E9 /* SWSUI in Frameworks */ = {isa = PBXBuildFile; productRef = D1CE24DECF37C51D7CD2FE45 /* SWSUI */; };
-		C17AB7A4D7718B8CBD826981 /* SWSHotkey in Frameworks */ = {isa = PBXBuildFile; productRef = B6FA41C707B2CBCDD3BA21AB /* SWSHotkey */; };
 		D685057E78748982A4D113D5 /* SWSAccessibility in Frameworks */ = {isa = PBXBuildFile; productRef = 9AC849D0164D088BD99B875D /* SWSAccessibility */; };
 		D9BF6FBEDA5F1991D61CA9D3 /* SWSModel in Frameworks */ = {isa = PBXBuildFile; productRef = C39EE7EFFC2D2D5A1E207DE5 /* SWSModel */; };
 		F2D92FBA79DD8DC65BD83A26 /* SimpleWindowSnapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E801D43C0C0A0F3F9C458055 /* SimpleWindowSnapApp.swift */; };
@@ -20,7 +19,6 @@
 		39379A5254EA4794061C5F47 /* SimpleWindowSnap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleWindowSnap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C0A28858E80677A95DF6CCB /* SWSModel */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSModel; path = Packages/SWSModel; sourceTree = SOURCE_ROOT; };
 		5EE3C83CF90D50FCCDE813BA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		7C547F27BA32B3D5C0B8BCEA /* SWSHotkey */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSHotkey; path = Packages/SWSHotkey; sourceTree = SOURCE_ROOT; };
 		820CF40DA9D2C7C22DCCDFCB /* SWSOverlay */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSOverlay; path = Packages/SWSOverlay; sourceTree = SOURCE_ROOT; };
 		93A3C807A0AC63A142617497 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A8FC09D2E52A6100F982967D /* SWSUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSUI; path = Packages/SWSUI; sourceTree = SOURCE_ROOT; };
@@ -37,7 +35,6 @@
 				D685057E78748982A4D113D5 /* SWSAccessibility in Frameworks */,
 				344577CE2A3238C18084DD23 /* SWSOverlay in Frameworks */,
 				8EC6B2109289A7EBD8C1C6E9 /* SWSUI in Frameworks */,
-				C17AB7A4D7718B8CBD826981 /* SWSHotkey in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,7 +62,6 @@
 			isa = PBXGroup;
 			children = (
 				AA9ACD9DBC18228049EA8EC7 /* SWSAccessibility */,
-				7C547F27BA32B3D5C0B8BCEA /* SWSHotkey */,
 				4C0A28858E80677A95DF6CCB /* SWSModel */,
 				820CF40DA9D2C7C22DCCDFCB /* SWSOverlay */,
 				A8FC09D2E52A6100F982967D /* SWSUI */,
@@ -103,7 +99,6 @@
 				9AC849D0164D088BD99B875D /* SWSAccessibility */,
 				663D3C0504A0677D37FB2E2B /* SWSOverlay */,
 				D1CE24DECF37C51D7CD2FE45 /* SWSUI */,
-				B6FA41C707B2CBCDD3BA21AB /* SWSHotkey */,
 			);
 			productName = SimpleWindowSnap;
 			productReference = 39379A5254EA4794061C5F47 /* SimpleWindowSnap.app */;
@@ -135,7 +130,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				98C383B2A6A96FFC84D01365 /* XCLocalSwiftPackageReference "Packages/SWSAccessibility" */,
-				A0C2DCB4904125EE8E6A0446 /* XCLocalSwiftPackageReference "Packages/SWSHotkey" */,
 				FECC85A14B4E3483E5128A99 /* XCLocalSwiftPackageReference "Packages/SWSModel" */,
 				17E99C5A98CF8E2B69E41950 /* XCLocalSwiftPackageReference "Packages/SWSOverlay" */,
 				73168B038062B22890D42136 /* XCLocalSwiftPackageReference "Packages/SWSUI" */,
@@ -360,10 +354,6 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/SWSAccessibility;
 		};
-		A0C2DCB4904125EE8E6A0446 /* XCLocalSwiftPackageReference "Packages/SWSHotkey" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/SWSHotkey;
-		};
 		FECC85A14B4E3483E5128A99 /* XCLocalSwiftPackageReference "Packages/SWSModel" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/SWSModel;
@@ -378,10 +368,6 @@
 		9AC849D0164D088BD99B875D /* SWSAccessibility */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SWSAccessibility;
-		};
-		B6FA41C707B2CBCDD3BA21AB /* SWSHotkey */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SWSHotkey;
 		};
 		C39EE7EFFC2D2D5A1E207DE5 /* SWSModel */ = {
 			isa = XCSwiftPackageProductDependency;
