@@ -12,6 +12,7 @@
 		8EC6B2109289A7EBD8C1C6E9 /* SWSUI in Frameworks */ = {isa = PBXBuildFile; productRef = D1CE24DECF37C51D7CD2FE45 /* SWSUI */; };
 		D685057E78748982A4D113D5 /* SWSAccessibility in Frameworks */ = {isa = PBXBuildFile; productRef = 9AC849D0164D088BD99B875D /* SWSAccessibility */; };
 		D9BF6FBEDA5F1991D61CA9D3 /* SWSModel in Frameworks */ = {isa = PBXBuildFile; productRef = C39EE7EFFC2D2D5A1E207DE5 /* SWSModel */; };
+		E923FA8C64D4140F2271F8A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDCF5F2C88E773D44EB5E2D3 /* Assets.xcassets */; };
 		F2D92FBA79DD8DC65BD83A26 /* SimpleWindowSnapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E801D43C0C0A0F3F9C458055 /* SimpleWindowSnapApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +24,7 @@
 		93A3C807A0AC63A142617497 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A8FC09D2E52A6100F982967D /* SWSUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSUI; path = Packages/SWSUI; sourceTree = SOURCE_ROOT; };
 		AA9ACD9DBC18228049EA8EC7 /* SWSAccessibility */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SWSAccessibility; path = Packages/SWSAccessibility; sourceTree = SOURCE_ROOT; };
+		CDCF5F2C88E773D44EB5E2D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E801D43C0C0A0F3F9C458055 /* SimpleWindowSnapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleWindowSnapApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				5EE3C83CF90D50FCCDE813BA /* AppDelegate.swift */,
+				CDCF5F2C88E773D44EB5E2D3 /* Assets.xcassets */,
 				93A3C807A0AC63A142617497 /* Info.plist */,
 				E801D43C0C0A0F3F9C458055 /* SimpleWindowSnapApp.swift */,
 			);
@@ -87,6 +90,7 @@
 			buildConfigurationList = 681275389E524C22AF6E40E0 /* Build configuration list for PBXNativeTarget "SimpleWindowSnap" */;
 			buildPhases = (
 				145E25E6D96F749478DA32F7 /* Sources */,
+				9FA3C5B240426BBDAEF2B25A /* Resources */,
 				274E0C87AABF834BC0A79916 /* Frameworks */,
 			);
 			buildRules = (
@@ -143,6 +147,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9FA3C5B240426BBDAEF2B25A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E923FA8C64D4140F2271F8A8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		145E25E6D96F749478DA32F7 /* Sources */ = {

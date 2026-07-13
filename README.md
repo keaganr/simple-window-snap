@@ -2,8 +2,9 @@
 
 A native macOS menu-bar utility for snapping windows into user-defined
 screen zones. See [functionality.md](functionality.md) for the product
-spec and [implementation-plan.md](implementation-plan.md) for the
-architecture and build plan.
+spec, [implementation-plan.md](implementation-plan.md) for the
+architecture and build plan, and [DISTRIBUTION.md](DISTRIBUTION.md) for
+signing/notarizing a build to share with someone else.
 
 ## Requirements
 
@@ -19,7 +20,7 @@ phased build order. Each phase is landed as its own commit.
 ## Project Structure
 
 ```
-App/                  # App target: @main entry, AppDelegate, Info.plist
+App/                  # App target: @main entry, AppDelegate, Info.plist, Assets.xcassets
 Packages/
   SWSModel/           # Data model + geometry + JSON persistence
   SWSAccessibility/   # Drag-detection engine + AX window read/write
@@ -84,6 +85,9 @@ source files or packages).
    of `AXWindowMoved`/`AXWindowResized` notifications while dragging. Note:
    use `/usr/bin/log`, not bare `log` - zsh has a builtin of the same name
    that shadows it.
+10. "Launch at Login" in the menu toggles whether the app starts
+    automatically at login, via `SMAppService` - check System Settings →
+    General → Login Items to confirm it took effect.
 
 To build from the command line instead:
 

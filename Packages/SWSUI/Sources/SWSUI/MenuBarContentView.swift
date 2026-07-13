@@ -9,6 +9,7 @@ import SWSModel
 public struct MenuBarContentView: View {
     @ObservedObject private var permissionManager: PermissionManager
     @ObservedObject private var configurationStore: ConfigurationStore
+    @StateObject private var launchAtLoginManager = LaunchAtLoginManager()
     @Environment(\.openWindow) private var openWindow
 
     public init(permissionManager: PermissionManager, configurationStore: ConfigurationStore) {
@@ -48,6 +49,14 @@ public struct MenuBarContentView: View {
         Button("Edit Zones…") {
             openAndActivate(zoneEditorWindowID)
         }
+
+        Toggle(
+            "Launch at Login",
+            isOn: Binding(
+                get: { launchAtLoginManager.isEnabled },
+                set: { launchAtLoginManager.setEnabled($0) }
+            )
+        )
 
         Divider()
 
