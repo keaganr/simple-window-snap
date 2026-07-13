@@ -46,11 +46,11 @@ public struct MenuBarContentView: View {
         }
 
         Button("Edit Zones…") {
-            openWindow(id: zoneEditorWindowID)
+            openAndActivate(zoneEditorWindowID)
         }
 
         Button("Preferences…") {
-            openWindow(id: preferencesWindowID)
+            openAndActivate(preferencesWindowID)
         }
 
         Divider()
@@ -59,6 +59,18 @@ public struct MenuBarContentView: View {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
+    }
+
+    /// `openWindow(id:)` alone leaves the new window wherever it lands in
+    /// the global window stack - since this is a menu-bar-only ("accessory")
+    /// app, it's never automatically made the frontmost app the way a
+    /// normal app opening a window would be, so the window can appear
+    /// behind whatever currently has focus. Activating first fixes that
+    /// without changing the app's LSUIElement/accessory status (no Dock
+    /// icon, no Cmd-Tab entry).
+    private func openAndActivate(_ id: String) {
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: id)
     }
 }
 
