@@ -104,6 +104,20 @@ exist on most modern Mac keyboards, so a quadruple-modifier combo is a safer
 out-of-the-box default; configurable in Preferences via
 `KeyboardShortcuts.Recorder`.
 
+> **Superseded after Phase 7 shipped:** the discrete-toggle hotkey above was
+> built as planned, but real usage showed it was cumbersome to hit reliably
+> one-handed mid-drag, and toggling meant remembering whether suppression
+> was currently on. It was replaced with a live modifier-hold instead:
+> `DragDetectionEngine` monitors `.flagsChanged` directly and sets
+> `isSnapSuppressed` to match the key's physical state in real time (hold
+> to suppress, release to resume - nothing to remember). Option was tried
+> first but conflicts with macOS's own native window tiling, which is
+> already bound to holding Option while dragging; **Control** has no known
+> native drag-time binding and was kept as the (currently hardcoded, no
+> customization UI) modifier. This removed the `SWSHotkey` package, its
+> `KeyboardShortcuts` dependency, and the Preferences window entirely -
+> none of it is needed for passive modifier-flag monitoring.
+
 ## Workflow Notes
 
 - A copy of this plan will be committed to the repo as
