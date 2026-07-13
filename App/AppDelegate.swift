@@ -36,12 +36,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dragDetectionEngine.$phase
             .combineLatest(dragDetectionEngine.$isSnapSuppressed, configurationStore.$activeConfigurationID)
             .removeDuplicates { $0.0 == $1.0 && $0.1 == $1.1 && $0.2 == $1.2 }
-            .sink { [overlayController, configurationStore] phase, isSuppressed, _ in
+            .sink { [overlayController, configurationStore] phase, isSuppressed, activeConfigurationID in
                 MainActor.assumeIsolated {
                     if case .dragging = phase, !isSuppressed {
+                        // Use the id `@Published` just emitted rather than
+                        // re-reading `configurationStore.activeConfigurationID`:
+                        // `@Published` publishes on `willSet`, before its
+                        // backing storage is actually updated, so re-reading
+                        // the property here - during the very call that's
+                        // changing it - would still see the previous value
+                        // and leave the overlay a step behind (e.g. the first
+                        // Option press during a drag appearing to do nothing).
                         let configurations = configurationStore.configurations
-                        let zones = configurationStore.activeConfiguration?.zones.map(\.rect) ?? []
-                        let activeIndex = configurations.firstIndex { $0.id == configurationStore.activeConfigurationID }
+                        let activeIndex = configurations.firstIndex { $0.id == activeConfigurationID }
+                        let zones = activeIndex.map { configurations[$0].zones.map(\.rect) } ?? []
                         overlayController.show(
                             zones: zones,
                             configurationNames: configurations.map(\.name),
